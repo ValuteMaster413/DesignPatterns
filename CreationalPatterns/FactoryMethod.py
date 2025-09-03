@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Machine(ABC):
     type = None
     status = "notReady"
@@ -21,11 +22,13 @@ class Machine(ABC):
 
         return self.status
 
+
 class Train(Machine):
     type = "train"
 
     def honk(self):
         print("choo-choo")
+
 
 class Car(Machine):
     type = "car"
@@ -33,16 +36,19 @@ class Car(Machine):
     def honk(self):
         print("beep-beep")
 
+
 class Boat(Machine):
     type = "boat"
 
     def honk(self):
         print("ahooga")
 
+
 class MachineFactory(ABC):
     @abstractmethod
     def create_machine(self):
         pass
+
 
 class TrainFactory(MachineFactory):
     def create_machine(self):
@@ -50,11 +56,13 @@ class TrainFactory(MachineFactory):
 
         return train
 
+
 class CarFactory(MachineFactory):
     def create_machine(self):
         car = Car()
 
         return car
+
 
 class BoatFactory(MachineFactory):
     def create_machine(self):
@@ -73,6 +81,7 @@ def main():
     print(transport.status)
 
     transport.honk()
+
 
 if __name__ == "__main__":
     main()
