@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 class Machine(ABC):
     type = None
+    status = "notReady"
 
     def __str__(self):
         return self.type
@@ -9,6 +10,16 @@ class Machine(ABC):
     @abstractmethod
     def honk(self):
         pass
+
+    def status_changing(self):
+        if self.status == "ready":
+            self.status = "notReady"
+        elif self.status == "notReady":
+            self.status = "ready"
+        else:
+            return "status error"
+
+        return self.status
 
 class Train(Machine):
     type = "train"
@@ -51,3 +62,17 @@ class BoatFactory(MachineFactory):
 
         return boat
 
+
+def main():
+    factory = CarFactory()
+
+    transport = factory.create_machine()
+
+    print(transport.status)
+    transport.status_changing()
+    print(transport.status)
+
+    transport.honk()
+
+if __name__ == "__main__":
+    main()
