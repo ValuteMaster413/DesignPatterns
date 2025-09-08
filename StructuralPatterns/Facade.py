@@ -39,9 +39,9 @@ class Car(Machine):
     status: str = "New"
 
 class CarPreparation:
-    report = []
     def __init__(self, car: Car):
         self.car = car
+        self.report = []
 
     def prepare(self) -> str:
         if self.car.check_engine():
