@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+@dataclass
 class Machine(ABC):
     name: str = None
     engine: str = None

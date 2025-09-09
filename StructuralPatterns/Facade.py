@@ -34,6 +34,7 @@ class Machine(ABC):
         else:
             return False
 
+@dataclass
 class Car(Machine):
     name: str = "Car"
     status: str = "New"
