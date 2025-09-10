@@ -1,72 +1,85 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+import threading
 
-class State(ABC):
+
+class Turnstile:
+    def __init__(self) -> None:
+        self.state = ClosedState()
+
+    state: IState
+
+
+class IState(ABC):
     @abstractmethod
-    def handle(self, machine: Machine) -> None:
+    def insert_ticket(self, turnstile: Turnstile) -> None:
+        pass
+    @abstractmethod
+    def pass_through(self, turnstile: Turnstile) -> None:
+        pass
+    @abstractmethod
+    def complete_process(self, turnstile: Turnstile, success: bool = True) -> None:
         pass
 
-class NewState(State):
-    def handle(self, machine: Machine) -> None:
-        print(f"{machine.name} is new and waiting for service.")
-        machine._state = ReadyState()
+class ClosedState(IState):
+    def insert_ticket(self, turnstile: Turnstile) -> None:
+        turnstile.state = ProcessingState()
 
-    def __str__(self):
-        return "New"
+    def pass_through(self, turnstile: Turnstile) -> None:
+        print("Blocked")
 
-class ReadyState(State):
-    def handle(self, machine: Machine) -> None:
-        print(f"{machine.name} is ready and can be used.")
+    def complete_process(self, turnstile: Turnstile, success: bool = True) -> None:
+        print("No process to complete")
 
-    def __str__(self):
-        return "Ready"
+class OpenState(IState):
+    def __init__(self, turnstile):
+        self.timer = threading.Timer(30, self.complete_process, args=[turnstile])
+        self.timer.start()
 
-class BrokenState(State):
-    def handle(self, machine: Machine) -> None:
-        print(f"{machine.name} is broken and needs repair.")
-        machine._state = InServiceState()
+    def insert_ticket(self, turnstile: Turnstile) -> None:
+        print("Already Payed")
 
-    def __str__(self):
-        return "Broken"
+    def pass_through(self, turnstile: Turnstile) -> None:
+        self.timer.cancel()
+        turnstile.state = ClosedState()
 
-class InServiceState(State):
-    def handle(self, machine: Machine) -> None:
-        print(f"{machine.name} is in service.")
-        machine._state = ReadyState()
-
-    def __str__(self):
-        return "InService"
+    def complete_process(self, turnstile: Turnstile, success: bool = True) -> None:
+        print("Time Is Up")
+        turnstile.state = ClosedState()
 
 
-class Machine(ABC):
-    def __init__(self, name: str) -> None:
-        self.name: str = name
-        self._state: State = NewState()
+class ProcessingState(IState):
+    def insert_ticket(self, turnstile: Turnstile) -> None:
+        print("Payment in processing")
 
-    def get_status(self) -> str:
-        return self._state.__str__()
+    def pass_through(self, turnstile: Turnstile) -> None:
+        print("Payment in processing")
 
-    def request(self) -> None:
-        self._state.handle(self)
+    def complete_process(self, turnstile: Turnstile, success: bool = True) -> None:
+        if success:
+            print("Payment Successful! Turnstile opened.")
+            turnstile.state = OpenState(turnstile)
+        else:
+            print("Payment Failed. Turnstile remains closed.")
+            turnstile.state = ClosedState()
 
-class Car(Machine):
-    def __init__(self):
-        super().__init__(name="Car")
-
-class Train(Machine):
-    def __init__(self):
-        super().__init__(name="Train")
-
-class Boat(Machine):
-    def __init__(self):
-        super().__init__(name="Boat")
 
 def main() -> None:
-    car = Car()
-    print(car.get_status())
-    car.request()
-    print(car.get_status())
-    car.request()
+    turnstile = Turnstile()
+
+    turnstile.state.pass_through(turnstile)
+
+    turnstile.state.insert_ticket(turnstile)
+
+    turnstile.state.complete_process(turnstile, success=True)
+
+    turnstile.state.pass_through(turnstile)
+
+    turnstile.state.insert_ticket(turnstile)
+
+    turnstile.state.complete_process(turnstile, success=False)
+
+    turnstile.state.pass_through(turnstile)
 
 
 if __name__ == "__main__":
